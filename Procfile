@@ -1,1 +1,2 @@
-web: gunicorn notebook_site.wsgi
+web: gunicorn notebook_site.notebook_site.wsgi
+
