@@ -3,3 +3,5 @@ whitenoise
 dj-database-url
 Django==5.2.10
 
+psycopg2-binary
+
