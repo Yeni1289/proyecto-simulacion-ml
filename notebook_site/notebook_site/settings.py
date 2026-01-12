@@ -31,7 +31,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'notebook_site.urls'
 
 TEMPLATES = [
