@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <header class="detail-title-wrap">
+    <h1 class="detail-title big-title">{{ title }}</h1>
+    {% if sections %}
+      <div class="section-chips">
+        {% for s in sections %}
+          <a class="chip chip-link" data-target="{{ s }}">{{ s }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </header>
+
+  <section class="detail-summary card">
+    {% if summary %}
+      <div class="summary-text">{{ summary|safe }}</div>
+    {% else %}
+      <p class="summary-text muted">(Sin descripción breve disponible)</p>
+    {% endif %}
+  </section>
+
+  <section class="outputs">
+    {% for it in items %}
+      {% if it.type == 'markdown' %}
+        <article class="card markdown">{{ it.content|safe }}</article>
+      {% elif it.type == 'image' %}
+        <article class="card image"><img src="{{ it.path }}" alt="imagen"></article>
+      {% elif it.type == 'html' %}
+        <article class="card html-output">{{ it.content|safe }}</article>
+      {% elif it.type == 'text' %}
+        <article class="card text-output"><pre>{{ it.content }}</pre></article>
+      {% endif %}
+    {% endfor %}
+  </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Crear ids a partir de encabezados y enlazar chips a esas ids (smooth scroll)
+;(function(){
+  function slugify(text){
+    return text.toString().toLowerCase().trim()
+      .replace(/[^\w\s-]/g,'')
+      .replace(/\s+/g,'-');
+  }
+
+  // Generar ids únicos para cada heading h2/h3 dentro de outputs
+  const outputs = document.querySelector('.outputs');
+  if(!outputs) return;
+  const headings = outputs.querySelectorAll('h2, h3');
+  const used = new Set();
+  headings.forEach((h, i) => {
+    let base = slugify(h.textContent || ('section-'+i));
+    let id = base;
+    let suffix = 1;
+    while(used.has(id) || document.getElementById(id)){
+      id = base + '-' + suffix; suffix++;
+    }
+    used.add(id);
+    h.id = id;
+  });
+
+  // Convertir chips en enlaces con href y smooth scroll
+  document.querySelectorAll('.chip-link').forEach(chip => {
+    const target = chip.dataset.target || chip.textContent;
+    const slug = slugify(target || '');
+    // si existe un heading con ese id, asignar href, si no, buscar similar
+    let elem = document.getElementById(slug);
+    if(!elem){
+      // intentar encontrar por inicio de slug
+      elem = Array.from(headings).find(h => (h.id && h.id.indexOf(slug) === 0));
+    }
+    if(elem){
+      chip.setAttribute('href','#'+elem.id);
+      chip.addEventListener('click', function(e){
+        e.preventDefault();
+        document.getElementById(elem.id).scrollIntoView({behavior:'smooth', block:'start'});
+        history.replaceState && history.replaceState(null, null, '#'+elem.id);
+      });
+    } else {
+      // si no hay destino, desactivar enlace visualmente
+      chip.style.opacity = 0.75;
+      chip.style.pointerEvents = 'none';
+    }
+  });
+})();
+</script>
+{% endblock %}

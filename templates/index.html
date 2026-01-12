@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <section class="grid">
+    {% if files %}
+      {% for f in files %}
+        <article class="card card-thumb">
+          <a href="/notebook/{{ f.base }}/">
+            <div class="thumb thumb-name">
+              <div class="thumb-text">{{ f.title }}</div>
+            </div>
+            <div class="card-body">
+              <p class="card-sub">Ver archivo</p>
+            </div>
+          </a>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No se encontraron notebooks convertidas. Ejecuta <code>python convert_notebooks.py</code>.</div>
+    {% endif %}
+  </section>
+{% endblock %}
