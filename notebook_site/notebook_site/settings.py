@@ -28,9 +28,11 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'notebook_site.notebook_site.urls'
+
+ROOT_URLCONF = 'notebook_site.urls'
 
 TEMPLATES = [
     {
@@ -48,7 +50,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'notebook_site.notebook_site.wsgi.application'
+WSGI_APPLICATION = 'notebook_site.wsgi.application'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
