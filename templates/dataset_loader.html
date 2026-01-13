@@ -368,8 +368,11 @@
     </div>
 
     <script>
-        // Función para abrir notebook directamente (modo producción)
-        function openNotebookDirect(slug) {
+        // Detectar si estamos en producción
+        const isProduction = {{ is_production|lower }};
+
+        // Función para abrir notebook directamente
+        function openNotebook(slug) {
             showMessage('success', '✅ Abriendo notebook...');
             setTimeout(() => {
                 window.location.href = `/notebook/${slug}/`;
@@ -379,14 +382,10 @@
         // Cargar carpeta guardada al entrar (solo en desarrollo)
         document.addEventListener('DOMContentLoaded', function() {
             const folderInput = document.getElementById('folderPathInput');
-            if (folderInput) {
+            if (folderInput && !isProduction) {
                 const savedFolder = localStorage.getItem('selectedFolder');
                 if (savedFolder) {
                     folderInput.value = savedFolder;
-                    // Cargar archivos automáticamente
-                    setTimeout(() => {
-                        listFiles();
-                    }, 500);
                 }
             }
         });
@@ -403,19 +402,22 @@
         }
 
         function listFiles() {
-            const folderPath = document.getElementById('folderPathInput').value.trim();
+            const folderPathInput = document.getElementById('folderPathInput');
+            let folderPath = folderPathInput.value.trim();
             
-            if (!folderPath) {
-                showMessage('error', '⚠️ Por favor ingresa una ruta de carpeta');
-                return;
+            // En producción, si está vacío, usa la ruta por defecto
+            if (isProduction && !folderPath) {
+                folderPath = 'datasets';  // Dummy value, el servidor usará DATASETS_DIR
             }
-
+            
             // Mostrar loading
             document.getElementById('loading').classList.add('active');
             document.getElementById('actionButtons').style.display = 'none';
 
-            // Intentar abrir la carpeta en el explorador
-            openFolderInExplorer(folderPath);
+            // Intentar abrir la carpeta en el explorador (solo en desarrollo)
+            if (!isProduction && folderPath) {
+                openFolderInExplorer(folderPath);
+            }
 
             // Enviar solicitud al servidor
             const formData = new FormData();
@@ -438,7 +440,12 @@
                     // Guardar la carpeta en localStorage
                     localStorage.setItem('selectedFolder', data.folder);
                     displayFiles(data.folder, data.files);
-                    showMessage('success', `✅ Carpeta abierta con ${data.files.length} archivo(s). Arrastra archivos .ipynb aquí.`);
+                    
+                    if (data.is_production) {
+                        showMessage('success', `✅ ${data.files.length} notebook(s) disponible(s)`);
+                    } else {
+                        showMessage('success', `✅ Carpeta abierta con ${data.files.length} archivo(s)`);
+                    }
                 } else {
                     showMessage('error', `❌ Error: ${data.error}`);
                 }

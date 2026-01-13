@@ -101,7 +101,12 @@ def notebook_view(request, filename):
 
 def dataset_loader(request):
     """Vista para carga inicial de dataset"""
-    return render(request, 'dataset_loader.html', {})
+    # Detectar si estamos en producción
+    is_production = os.environ.get('PORT') or os.environ.get('RAILWAY_ENVIRONMENT')
+    
+    return render(request, 'dataset_loader.html', {
+        'is_production': is_production,
+    })
 
 
 @require_http_methods(["POST"])
