@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Dataset </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .file-list {
+            display: none;
+            margin-top: 30px;
+            border-top: 2px solid #f0f0f0;
+            padding-top: 30px;
+        }
+
+        .file-list.active {
+            display: block;
+        }
+
+        .file-list h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .file-info {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .file-info .name {
+            font-weight: 500;
+            color: #333;
+            word-break: break-all;
+        }
+
+        .file-info .size {
+            color: #999;
+            font-size: 12px;
+            white-space: nowrap;
+            margin-left: 20px;
+        }
+
+        .no-files {
+            color: #999;
+            font-size: 14px;
+            padding: 20px;
+            text-align: center;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            background: #667eea;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #999;
+        }
+
+        .btn-secondary:hover {
+            background: #777;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .message.info {
+            background: #eef;
+            color: #33c;
+            border: 1px solid #ccf;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .folder-preview {
+            display: none;
+            background: #f9f9f9;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .folder-preview.active {
+            display: block;
+        }
+
+        .folder-preview strong {
+            color: #333;
+        }
+
+        .drag-drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f9f9ff;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drag-drop-zone:hover {
+            background: #f0f0ff;
+            border-color: #5568d3;
+        }
+
+        .drag-drop-zone.dragover {
+            background: #e8e8ff;
+            border-color: #5568d3;
+            transform: scale(1.02);
+        }
+
+        .drag-drop-zone p {
+            margin: 10px 0;
+            color: #666;
+        }
+
+        .drag-drop-zone .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn-open-folder {
+            background: #28a745;
+            margin-left: 10px;
+        }
+
+        .btn-open-folder:hover {
+            background: #218838;
+        }
+
+        .file-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .file-list-header h3 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Cargador de Dataset</h1>
+            <p>Selecciona la carpeta donde están tus archivos</p>
+        </div>
+
+        <div class="content">
+            <div class="message error" id="errorMsg"></div>
+            <div class="message success" id="successMsg"></div>
+            <div class="message info" id="infoMsg"></div>
+
+            <div class="input-group">
+                <label for="folderPath">Ruta de la Carpeta:</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="folderPathInput" 
+                        placeholder="Ej: C:\Users\tu_usuario\Documentos\datos"
+                            value="c:\Users\yanet\OneDrive\Documentos\PROYECTO_SIMULACION_I\notebook_site\datasets"
+                    >
+                    <button id="browseBtn" onclick="listFiles()">Explorar</button>
+                </div>
+                <div class="helper-text">
+                    💡 Ingresa la ruta completa de la carpeta que contiene tus archivos .ipynb
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Cargando archivos...</p>
+            </div>
+
+            <div class="folder-preview" id="folderPreview">
+                <strong>📁 Carpeta seleccionada:</strong>
+                <div id="folderPath" style="word-break: break-all; margin-top: 5px; font-family: monospace; font-size: 12px;"></div>
+            </div>
+
+            <!-- Lista de archivos arrastrados/seleccionados -->
+            <div id="droppedFilesList" style="display: none; margin-top: 20px;">
+                <h3 style="color: #333; margin-bottom: 15px;">📄 Archivos Cargados:</h3>
+                <div id="droppedFilesContainer"></div>
+            </div>
+
+            <div class="button-group" id="actionButtons" style="display: none;">
+                <button class="btn-secondary" onclick="clearSelection()">Limpiar</button>
+                <button class="btn-primary" onclick="goToNotebooks()">Continuar a Notebooks →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar carpeta guardada al entrar
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedFolder = localStorage.getItem('selectedFolder');
+            if (savedFolder) {
+                document.getElementById('folderPathInput').value = savedFolder;
+                // Cargar archivos automáticamente
+                setTimeout(() => {
+                    listFiles();
+                }, 500);
+            }
+        });
+
+        function showMessage(type, message) {
+            const msgId = type === 'error' ? 'errorMsg' : (type === 'success' ? 'successMsg' : 'infoMsg');
+            const msgEl = document.getElementById(msgId);
+            msgEl.textContent = message;
+            msgEl.classList.add('active');
+            
+            setTimeout(() => {
+                msgEl.classList.remove('active');
+            }, 5000);
+        }
+
+        function listFiles() {
+            const folderPath = document.getElementById('folderPathInput').value.trim();
+            
+            if (!folderPath) {
+                showMessage('error', '⚠️ Por favor ingresa una ruta de carpeta');
+                return;
+            }
+
+            // Mostrar loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('actionButtons').style.display = 'none';
+
+            // Intentar abrir la carpeta en el explorador
+            openFolderInExplorer(folderPath);
+
+            // Enviar solicitud al servidor
+            const formData = new FormData();
+            formData.append('folder_path', folderPath);
+            formData.append('csrfmiddlewaretoken', getCSRFToken());
+
+            fetch('/api/list-files/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                document.getElementById('loading').classList.remove('active');
+
+                if (data.success) {
+                    // Guardar la carpeta en localStorage
+                    localStorage.setItem('selectedFolder', data.folder);
+                    displayFiles(data.folder, data.files);
+                    showMessage('success', `✅ Carpeta abierta con ${data.files.length} archivo(s). Arrastra archivos .ipynb aquí.`);
+                } else {
+                    showMessage('error', `❌ Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                document.getElementById('loading').classList.remove('active');
+                showMessage('error', `❌ Error de conexión: ${error.message}. ¿El servidor está corriendo?`);
+            });
+        }
+
+        function displayFiles(folderPath, files) {
+            // Mostrar carpeta seleccionada
+            document.getElementById('folderPreview').classList.add('active');
+            document.getElementById('folderPath').textContent = folderPath;
+
+            // Si hay archivos en la carpeta, mostrarlos
+            if (files && files.length > 0) {
+                const container = document.getElementById('droppedFilesContainer');
+                container.innerHTML = '';
+                
+                files.forEach(file => {
+                    const sizeKB = (file.size / 1024).toFixed(2);
+                    const fileEl = document.createElement('div');
+                    fileEl.className = 'file-info';
+                    fileEl.innerHTML = `
+                        <span class="name">📓 ${file.name}</span>
+                        <span class="size">${sizeKB} KB</span>
+                        <button class="btn-primary" style="margin-left:10px" onclick="openNotebookFromPath('${file.path.replace(/\\/g, '\\\\')}')">Abrir</button>
+                    `;
+                    container.appendChild(fileEl);
+                });
+                
+                document.getElementById('droppedFilesList').style.display = 'block';
+            }
+
+            document.getElementById('actionButtons').style.display = 'flex';
+        }
+
+        function clearSelection() {
+            document.getElementById('folderPathInput').value = '';
+            document.getElementById('folderPreview').classList.remove('active');
+            document.getElementById('openFolderBtn').style.display = 'none';
+            document.getElementById('dragInstructions').style.display = 'none';
+            document.getElementById('dragDropZone').style.display = 'none';
+            document.getElementById('droppedFilesList').style.display = 'none';
+            document.getElementById('droppedFilesContainer').innerHTML = '';
+            document.getElementById('actionButtons').style.display = 'none';
+            localStorage.removeItem('selectedFolder');
+        }
+
+        function goToNotebooks() {
+            window.location.href = '/notebooks/';
+        }
+
+        function openNotebook(slug) {
+            // Abrir notebook transformado (usa el mismo slug que json generado por convert_notebooks)
+            window.location.href = `/notebook/${slug}/`;
+        }
+
+        function openNotebookFromPath(filePath) {
+            // Enviar la ruta del archivo al servidor para procesarlo y abrirlo
+            const formData = new FormData();
+            formData.append('file_path', filePath);
+            formData.append('csrfmiddlewaretoken', getCSRFToken());
+
+            showMessage('info', '🔄 Procesando notebook...');
+
+            fetch('/api/open-notebook/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/notebook/${data.slug}/`;
+                } else {
+                    showMessage('error', `❌ Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                showMessage('error', `❌ Error: ${error.message}`);
+            });
+        }
+
+        function openFolderInExplorer(folderPath) {
+            if (!folderPath) {
+                folderPath = document.getElementById('folderPathInput').value.trim();
+            }
+            
+            if (folderPath) {
+                // Crear un enlace temporal para intentar abrir en explorador
+                const link = document.createElement('a');
+                link.href = 'file:///' + folderPath.replace(/\\/g, '/');
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Mostrar mensaje
+                showMessage('info', '🗂️ Intentando abrir carpeta en el Explorador...');
+            }
+        }
+
+        // Drag & Drop functionality
+        const dragDropZone = document.getElementById('dragDropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dragDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropZone.classList.add('dragover');
+        });
+
+        dragDropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragDropZone.classList.remove('dragover');
+        });
+
+        dragDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropZone.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.ipynb'));
+            if (files.length > 0) {
+                handleDroppedFiles(files);
+            } else {
+                showMessage('error', '⚠️ Solo se aceptan archivos .ipynb');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                handleDroppedFiles(files);
+            }
+        });
+
+        function handleDroppedFiles(files) {
+            const container = document.getElementById('droppedFilesContainer');
+            const folderPath = document.getElementById('folderPathInput').value.trim();
+            
+            files.forEach(file => {
+                const sizeKB = (file.size / 1024).toFixed(2);
+                const fileEl = document.createElement('div');
+                fileEl.className = 'file-info';
+                fileEl.style.background = '#e8ffe8';
+                
+                // Construir ruta completa si hay carpeta base
+                const fullPath = folderPath ? `${folderPath}\\${file.name}` : file.name;
+                
+                fileEl.innerHTML = `
+                    <span class="name">📓 ${file.name}</span>
+                    <span class="size">${sizeKB} KB</span>
+                    <button class="btn-primary" style="margin-left:10px" onclick="openNotebookFromPath('${fullPath.replace(/\\/g, '\\\\')}')">Abrir</button>
+                `;
+                container.appendChild(fileEl);
+            });
+            
+            document.getElementById('droppedFilesList').style.display = 'block';
+            showMessage('success', `✅ ${files.length} archivo(s) agregado(s). Haz clic en "Abrir" para verlos.`);
+        }
+
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Permitir Enter en el input
+        document.getElementById('folderPathInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                listFiles();
+            }
+        });
+    </script>
+</body>
+</html>

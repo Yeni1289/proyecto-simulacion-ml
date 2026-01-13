@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'viewer',
 ]
 
 MIDDLEWARE = [
@@ -31,7 +32,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'notebook_site.urls'
+# The app package is `app` at project root
+ROOT_URLCONF = 'app.urls'
 
 TEMPLATES = [
     {
@@ -49,7 +51,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'notebook_site.wsgi.application'
+# Point WSGI to app.wsgi
+WSGI_APPLICATION = 'app.wsgi.application'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]

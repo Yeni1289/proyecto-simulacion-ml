@@ -4,7 +4,7 @@ import base64
 from nbformat import read
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-NOTEBOOKS_DIR = os.path.join(BASE_DIR, 'notebooks')
+NOTEBOOKS_DIR = os.path.join(BASE_DIR, 'datasets')
 TEMPLATES_OUT_DIR = os.path.join(BASE_DIR, 'notebook_site', 'templates', 'notebooks')
 STATIC_OUT_DIR = os.path.join(BASE_DIR, 'notebook_site', 'static', 'notebooks')
 
