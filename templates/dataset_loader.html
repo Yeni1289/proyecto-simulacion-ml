@@ -327,6 +327,37 @@
             <div class="message success" id="successMsg"></div>
             <div class="message info" id="infoMsg"></div>
 
+            {% if is_production %}
+            <!-- Modo Producción: Mostrar notebooks disponibles en el servidor -->
+            <div class="production-mode">
+                <div class="info-banner" style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #2196F3;">
+                    <strong>🌐 Modo Producción</strong>
+                    <p style="margin: 8px 0 0 0; color: #555;">Estos son los notebooks disponibles en el servidor.</p>
+                </div>
+
+                {% if available_notebooks %}
+                <div class="notebook-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                    {% for notebook in available_notebooks %}
+                    <div class="notebook-card" style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.3s; cursor: pointer; background: #f9f9f9;" onclick="openNotebookDirect('{{ notebook.slug }}')">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📓</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; word-break: break-word;">{{ notebook.name }}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 15px;">{{ notebook.size|filesizeformat }}</div>
+                        <button class="btn-primary" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                            Abrir
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: #999;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📂</div>
+                    <h3>No hay notebooks disponibles</h3>
+                    <p>Los notebooks se cargarán automáticamente en el próximo deploy</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- Modo Desarrollo: Permitir selección de carpeta local -->
             <div class="input-group">
                 <label for="folderPath">Ruta de la Carpeta:</label>
                 <div class="input-wrapper">
@@ -334,7 +365,7 @@
                         type="text" 
                         id="folderPathInput" 
                         placeholder="Ej: C:\Users\tu_usuario\Documentos\datos"
-                            value="c:\Users\yanet\OneDrive\Documentos\PROYECTO_SIMULACION_I\notebook_site\datasets"
+                        value="c:\Users\yanet\OneDrive\Documentos\PROYECTO_SIMULACION_I\notebook_site\datasets"
                     >
                     <button id="browseBtn" onclick="listFiles()">Explorar</button>
                 </div>
@@ -342,6 +373,7 @@
                     💡 Ingresa la ruta completa de la carpeta que contiene tus archivos .ipynb
                 </div>
             </div>
+            {% endif %}
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -367,15 +399,26 @@
     </div>
 
     <script>
-        // Cargar carpeta guardada al entrar
+        // Función para abrir notebook directamente (modo producción)
+        function openNotebookDirect(slug) {
+            showMessage('success', '✅ Abriendo notebook...');
+            setTimeout(() => {
+                window.location.href = `/notebook/${slug}/`;
+            }, 300);
+        }
+
+        // Cargar carpeta guardada al entrar (solo en desarrollo)
         document.addEventListener('DOMContentLoaded', function() {
-            const savedFolder = localStorage.getItem('selectedFolder');
-            if (savedFolder) {
-                document.getElementById('folderPathInput').value = savedFolder;
-                // Cargar archivos automáticamente
-                setTimeout(() => {
-                    listFiles();
-                }, 500);
+            const folderInput = document.getElementById('folderPathInput');
+            if (folderInput) {
+                const savedFolder = localStorage.getItem('selectedFolder');
+                if (savedFolder) {
+                    folderInput.value = savedFolder;
+                    // Cargar archivos automáticamente
+                    setTimeout(() => {
+                        listFiles();
+                    }, 500);
+                }
             }
         });
 
