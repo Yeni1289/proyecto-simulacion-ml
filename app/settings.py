@@ -9,7 +9,22 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'replace-this-with-a-secure-key
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
+# Allow Railway and common hosts
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.railway.app',  # Matches any Railway subdomain
+    'proyecto-simulacion-ml.up.railway.app',
+]
+
+# Add custom hosts from environment variable if provided
+custom_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+if custom_hosts:
+    ALLOWED_HOSTS.extend(custom_hosts.split(','))
+
+# Allow all hosts in DEBUG mode (development only)
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
