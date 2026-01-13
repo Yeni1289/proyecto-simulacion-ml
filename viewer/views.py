@@ -5,6 +5,7 @@ import base64
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 try:
     from nbformat import read as nb_read
@@ -110,6 +111,7 @@ def dataset_loader(request):
 
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def list_files(request):
     """API endpoint para listar archivos de una carpeta"""
     try:
@@ -172,6 +174,7 @@ def list_files(request):
 
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def open_notebook(request):
     """API endpoint para procesar y abrir un notebook desde cualquier ruta"""
     try:
