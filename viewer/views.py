@@ -101,29 +101,7 @@ def notebook_view(request, filename):
 
 def dataset_loader(request):
     """Vista para carga inicial de dataset"""
-    # Detectar si estamos en producción (Railway tiene PORT env var)
-    is_production = os.environ.get('PORT') or os.environ.get('RAILWAY_ENVIRONMENT')
-    
-    # En producción, mostrar notebooks disponibles en el servidor
-    available_notebooks = []
-    if is_production and os.path.isdir(DATASETS_DIR):
-        for fname in sorted(os.listdir(DATASETS_DIR)):
-            if fname.lower().endswith('.ipynb'):
-                base = os.path.splitext(fname)[0]
-                try:
-                    size = os.path.getsize(os.path.join(DATASETS_DIR, fname))
-                except:
-                    size = 0
-                available_notebooks.append({
-                    'name': fname,
-                    'slug': base,
-                    'size': size,
-                })
-    
-    return render(request, 'dataset_loader.html', {
-        'is_production': is_production,
-        'available_notebooks': available_notebooks,
-    })
+    return render(request, 'dataset_loader.html', {})
 
 
 @require_http_methods(["POST"])
@@ -132,15 +110,20 @@ def list_files(request):
     try:
         folder_path = request.POST.get('folder_path', '')
         
-        # Validación de seguridad: asegurarse de que no salga del directorio base
-        if not folder_path:
-            return JsonResponse({
-                'success': False,
-                'error': 'Ruta de carpeta requerida'
-            })
+        # Detectar si estamos en producción
+        is_production = os.environ.get('PORT') or os.environ.get('RAILWAY_ENVIRONMENT')
         
-        # Normalizar ruta
-        full_path = os.path.normpath(os.path.join(folder_path))
+        # En producción, usar el directorio datasets del servidor
+        if is_production:
+            full_path = DATASETS_DIR
+        else:
+            # En desarrollo, usar la ruta proporcionada
+            if not folder_path:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Ruta de carpeta requerida'
+                })
+            full_path = os.path.normpath(folder_path)
         
         # Verificar que la carpeta existe
         if not os.path.isdir(full_path):
@@ -161,7 +144,7 @@ def list_files(request):
                         'path': item_path,
                         'size': size,
                         'type': 'notebook',
-                        'slug': base,  # para abrir en /notebook/<slug>
+                        'slug': base,
                     })
         except PermissionError:
             return JsonResponse({
@@ -171,8 +154,9 @@ def list_files(request):
         
         return JsonResponse({
             'success': True,
-            'folder': full_path,
-            'files': files
+            'folder': str(full_path),
+            'files': files,
+            'is_production': is_production
         })
     
     except Exception as e:
