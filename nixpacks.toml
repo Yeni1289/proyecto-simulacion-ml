@@ -1,0 +1,5 @@
+[start]
+cmd = "bash run_startup.sh"
+
+[build]
+cmds = ["pip install -r requirements.txt"]
