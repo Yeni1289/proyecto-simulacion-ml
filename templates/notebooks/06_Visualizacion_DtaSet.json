@@ -84,12 +84,8 @@
     "content": "class\nnormal     67343\nanomaly    58630\nName: count, dtype: int64"
   },
   {
-    "type": "text",
-    "content": "<Figure size 600x400 with 0 Axes>"
-  },
-  {
     "type": "image",
-    "path": "/static/notebooks/06_Visualizacion_DtaSet/img_1.png"
+    "content": "/static/notebooks/06_Visualizacion_DtaSet/img_1.png"
   },
   {
     "type": "markdown",
@@ -113,10 +109,10 @@
   },
   {
     "type": "image",
-    "path": "/static/notebooks/06_Visualizacion_DtaSet/img_2.png"
+    "content": "/static/notebooks/06_Visualizacion_DtaSet/img_2.png"
   },
   {
     "type": "image",
-    "path": "/static/notebooks/06_Visualizacion_DtaSet/img_3.png"
+    "content": "/static/notebooks/06_Visualizacion_DtaSet/img_3.png"
   }
 ]

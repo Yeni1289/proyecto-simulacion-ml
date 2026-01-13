@@ -106,35 +106,43 @@ def process_notebook(notebook_path):
 
 def main():
     """Función principal."""
-    if not NOTEBOOKS_DIR.exists():
-        print(f"ERROR: La carpeta {NOTEBOOKS_DIR} no existe")
-        return
-    
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    
-    notebooks = list(NOTEBOOKS_DIR.glob('*.ipynb'))
-    
-    if not notebooks:
-        print(f"No se encontraron notebooks en {NOTEBOOKS_DIR}")
-        return
-    
-    print(f"Procesando {len(notebooks)} notebooks...")
-    
-    for notebook_path in sorted(notebooks):
-        try:
-            print(f"  • {notebook_path.name}...", end=' ')
-            items = process_notebook(notebook_path)
-            
-            # Guardar JSON
-            output_path = OUTPUT_DIR / f'{notebook_path.stem}.json'
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(items, f, indent=2, ensure_ascii=False)
-            
-            print(f"✓ ({len(items)} items)")
-        except Exception as e:
-            print(f"✗ Error: {str(e)}")
-    
-    print(f"\n✓ Conversión completada. Archivos guardados en {OUTPUT_DIR}")
+    try:
+        # Crear directorio de salida si no existe
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Verificar si existe la carpeta de notebooks
+        if not NOTEBOOKS_DIR.exists():
+            print(f"WARN: La carpeta {NOTEBOOKS_DIR} no existe. Saltando conversión.")
+            return
+        
+        # Buscar notebooks
+        notebooks = list(NOTEBOOKS_DIR.glob('*.ipynb'))
+        
+        if not notebooks:
+            print(f"WARN: No se encontraron notebooks en {NOTEBOOKS_DIR}")
+            return
+        
+        print(f"Procesando {len(notebooks)} notebooks...")
+        
+        for notebook_path in sorted(notebooks):
+            try:
+                print(f"  • {notebook_path.name}...", end=' ', flush=True)
+                items = process_notebook(notebook_path)
+                
+                # Guardar JSON
+                output_path = OUTPUT_DIR / f'{notebook_path.stem}.json'
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(items, f, indent=2, ensure_ascii=False)
+                
+                print(f"✓ ({len(items)} items)")
+            except Exception as e:
+                print(f"✗ Error: {str(e)}")
+        
+        print(f"✓ Conversión completada. Archivos guardados en {OUTPUT_DIR}")
+    except Exception as e:
+        print(f"ERROR crítico en conversión: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == '__main__':
     main()

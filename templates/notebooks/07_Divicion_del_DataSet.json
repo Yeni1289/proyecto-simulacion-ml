@@ -49,18 +49,18 @@
   },
   {
     "type": "image",
-    "path": "/static/notebooks/07_Divicion_del_DataSet/img_1.png"
+    "content": "/static/notebooks/07_Divicion_del_DataSet/img_1.png"
   },
   {
     "type": "image",
-    "path": "/static/notebooks/07_Divicion_del_DataSet/img_2.png"
+    "content": "/static/notebooks/07_Divicion_del_DataSet/img_2.png"
   },
   {
     "type": "image",
-    "path": "/static/notebooks/07_Divicion_del_DataSet/img_3.png"
+    "content": "/static/notebooks/07_Divicion_del_DataSet/img_3.png"
   },
   {
     "type": "image",
-    "path": "/static/notebooks/07_Divicion_del_DataSet/img_4.png"
+    "content": "/static/notebooks/07_Divicion_del_DataSet/img_4.png"
   }
 ]
