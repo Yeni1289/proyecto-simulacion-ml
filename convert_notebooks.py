@@ -72,12 +72,8 @@ def process_notebook(notebook_path):
     notebook_name = notebook_path.stem
     
     for cell in notebook.cells:
-        if cell.cell_type == 'markdown':
-            items.append({
-                'type': 'markdown',
-                'content': cell.source
-            })
-        elif cell.cell_type == 'code':
+        # Saltar celdas markdown - solo procesar código y outputs
+        if cell.cell_type == 'code':
             outputs = extract_outputs(cell)
             
             for output in outputs:
