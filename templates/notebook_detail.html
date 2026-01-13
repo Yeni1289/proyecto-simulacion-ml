@@ -26,7 +26,7 @@
       {% if it.type == 'markdown' %}
         <article class="card markdown">{{ it.content|safe }}</article>
       {% elif it.type == 'image' %}
-        <article class="card image"><img src="{{ it.path }}" alt="imagen"></article>
+        <article class="card image"><img src="{{ it.content }}" alt="imagen"></article>
       {% elif it.type == 'html' %}
         <article class="card html-output">{{ it.content|safe }}</article>
       {% elif it.type == 'text' %}
