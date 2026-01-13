@@ -100,8 +100,24 @@ def notebook_view(request, filename):
 
 
 def dataset_loader(request):
-    """Vista para carga inicial de dataset"""
-    return render(request, 'dataset_loader.html', {})
+    """Vista para carga inicial de dataset - muestra notebooks disponibles"""
+    # En producción, listar notebooks del directorio datasets
+    available_notebooks = []
+    
+    if os.path.isdir(DATASETS_DIR):
+        for fname in sorted(os.listdir(DATASETS_DIR)):
+            if fname.lower().endswith('.ipynb'):
+                base = os.path.splitext(fname)[0]
+                size = os.path.getsize(os.path.join(DATASETS_DIR, fname))
+                available_notebooks.append({
+                    'name': fname,
+                    'slug': base,
+                    'size': size,
+                })
+    
+    return render(request, 'dataset_loader_simple.html', {
+        'available_notebooks': available_notebooks,
+    })
 
 
 @require_http_methods(["POST"])

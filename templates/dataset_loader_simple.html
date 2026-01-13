@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargador de Dataset</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .notebook-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .notebook-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: #f9f9f9;
+        }
+
+        .notebook-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .notebook-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .notebook-card .name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .notebook-card .size {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .notebook-card .btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .notebook-card .btn:hover {
+            background: #5568d3;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Notebooks Disponibles</h1>
+            <p>Selecciona un notebook para visualizar</p>
+        </div>
+
+        <div class="content">
+            <div class="message error" id="errorMsg"></div>
+            <div class="message success" id="successMsg"></div>
+
+            {% if available_notebooks %}
+            <div class="notebook-grid">
+                {% for notebook in available_notebooks %}
+                <div class="notebook-card">
+                    <div class="icon">📓</div>
+                    <div class="name">{{ notebook.name }}</div>
+                    <div class="size">{{ notebook.size|filesizeformat }}</div>
+                    <button class="btn" onclick="openNotebook('{{ notebook.slug }}')">
+                        Abrir
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="icon">📂</div>
+                <h3>No hay notebooks disponibles</h3>
+                <p>Los notebooks se cargarán automáticamente al hacer deploy</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function showMessage(type, message) {
+            const msgId = type === 'error' ? 'errorMsg' : 'successMsg';
+            const msgEl = document.getElementById(msgId);
+            msgEl.textContent = message;
+            msgEl.classList.add('active');
+            
+            setTimeout(() => {
+                msgEl.classList.remove('active');
+            }, 5000);
+        }
+
+        function openNotebook(slug) {
+            showMessage('success', '✅ Abriendo notebook...');
+            setTimeout(() => {
+                window.location.href = `/notebook/${slug}/`;
+            }, 500);
+        }
+    </script>
+</body>
+</html>
