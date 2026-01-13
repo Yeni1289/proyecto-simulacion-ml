@@ -1,8 +1,15 @@
 import os
 import json
 import html as _html
-from django.http import Http404
+import base64
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
+
+try:
+    from nbformat import read as nb_read
+except ImportError:
+    nb_read = None
 
 # Intentar importar markdown; si no está instalado, usar un fallback seguro
 try:
@@ -13,6 +20,11 @@ except Exception:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES_NOTES_DIR = os.path.join(BASE_DIR, 'templates', 'notebooks')
 STATIC_NOTES_DIR = os.path.join(BASE_DIR, 'static', 'notebooks')
+DATASETS_DIR = os.path.join(BASE_DIR, 'datasets')
+
+# Crear carpeta de datasets si no existe
+if not os.path.exists(DATASETS_DIR):
+    os.makedirs(DATASETS_DIR)
 
 
 def index(request):
@@ -85,3 +97,166 @@ def notebook_view(request, filename):
                 break
 
     return render(request, 'notebook_detail.html', {'items': items, 'title': title, 'summary': summary, 'sections': sections})
+
+
+def dataset_loader(request):
+    """Vista para carga inicial de dataset"""
+    return render(request, 'dataset_loader.html', {})
+
+
+@require_http_methods(["POST"])
+def list_files(request):
+    """API endpoint para listar archivos de una carpeta"""
+    try:
+        folder_path = request.POST.get('folder_path', '')
+        
+        # Validación de seguridad: asegurarse de que no salga del directorio base
+        if not folder_path:
+            return JsonResponse({
+                'success': False,
+                'error': 'Ruta de carpeta requerida'
+            })
+        
+        # Normalizar ruta
+        full_path = os.path.normpath(os.path.join(folder_path))
+        
+        # Verificar que la carpeta existe
+        if not os.path.isdir(full_path):
+            return JsonResponse({
+                'success': False,
+                'error': 'Carpeta no encontrada'
+            })
+        
+        files = []
+        try:
+            for item in sorted(os.listdir(full_path)):
+                item_path = os.path.join(full_path, item)
+                if os.path.isfile(item_path) and item.lower().endswith('.ipynb'):
+                    size = os.path.getsize(item_path)
+                    base, _ = os.path.splitext(item)
+                    files.append({
+                        'name': item,
+                        'path': item_path,
+                        'size': size,
+                        'type': 'notebook',
+                        'slug': base,  # para abrir en /notebook/<slug>
+                    })
+        except PermissionError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Permiso denegado para acceder a la carpeta'
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'folder': full_path,
+            'files': files
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_http_methods(["POST"])
+def open_notebook(request):
+    """API endpoint para procesar y abrir un notebook desde cualquier ruta"""
+    try:
+        file_path = request.POST.get('file_path', '')
+        
+        if not file_path:
+            return JsonResponse({
+                'success': False,
+                'error': 'Ruta de archivo requerida'
+            })
+        
+        # Normalizar y validar ruta
+        full_path = os.path.normpath(file_path)
+        
+        if not os.path.isfile(full_path):
+            return JsonResponse({
+                'success': False,
+                'error': 'Archivo no encontrado'
+            })
+        
+        if not full_path.lower().endswith('.ipynb'):
+            return JsonResponse({
+                'success': False,
+                'error': 'Solo se aceptan archivos .ipynb'
+            })
+        
+        # Procesar el notebook
+        try:
+            base = os.path.splitext(os.path.basename(full_path))[0]
+            
+            # Crear carpetas de salida si no existen
+            json_out_path = os.path.join(TEMPLATES_NOTES_DIR, f'{base}.json')
+            static_out_dir = os.path.join(STATIC_NOTES_DIR, base)
+            os.makedirs(static_out_dir, exist_ok=True)
+            
+            # Leer notebook
+            with open(full_path, 'r', encoding='utf-8') as f:
+                nb = nb_read(f, as_version=4)
+            
+            # Extraer outputs
+            items = []
+            img_counter = 0
+            
+            for cell in nb.cells:
+                if cell.cell_type == 'markdown':
+                    content = ''.join(cell.source)
+                    if content.strip():
+                        items.append({'type': 'markdown', 'content': content})
+                
+                elif cell.cell_type == 'code' and hasattr(cell, 'outputs'):
+                    for output in cell.outputs:
+                        # Imágenes
+                        if hasattr(output, 'data') and 'image/png' in output.data:
+                            img_counter += 1
+                            img_filename = f'output_{img_counter}.png'
+                            img_path = os.path.join(static_out_dir, img_filename)
+                            
+                            # Guardar imagen
+                            img_data = base64.b64decode(output.data['image/png'])
+                            with open(img_path, 'wb') as img_file:
+                                img_file.write(img_data)
+                            
+                            items.append({
+                                'type': 'image',
+                                'path': f'/static/notebooks/{base}/{img_filename}'
+                            })
+                        
+                        # HTML/tablas
+                        elif hasattr(output, 'data') and 'text/html' in output.data:
+                            html_content = ''.join(output.data['text/html'])
+                            items.append({'type': 'html', 'content': html_content})
+                        
+                        # Texto plano
+                        elif hasattr(output, 'text'):
+                            text_content = ''.join(output.text)
+                            if text_content.strip():
+                                items.append({'type': 'text', 'content': text_content})
+            
+            # Guardar JSON
+            with open(json_out_path, 'w', encoding='utf-8') as f:
+                json.dump(items, f, ensure_ascii=False, indent=2)
+            
+            return JsonResponse({
+                'success': True,
+                'slug': base,
+                'message': f'Notebook procesado: {base}'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Error procesando notebook: {str(e)}'
+            })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
