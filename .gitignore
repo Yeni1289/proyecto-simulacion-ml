@@ -46,8 +46,7 @@ Thumbs.db
 .env
 .env.local
 
-# Notebooks
+# Notebooks - Cache pero NO los .ipynb originales
 *.ipynb_checkpoints/
-notebook_site/datasets/*.ipynb
 notebook_site/NSL-KDD/
 notebook_site/FinalDataset/
